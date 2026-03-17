@@ -14,5 +14,5 @@ This project demonstrates practical skills in:
 
 
 
-## lpkg install [For install] 
-## ex lpkg install sudo wget curl 
+## lpkg install [ For install ] 
+## EX lpkg install sudo wget curl 
