@@ -1,0 +1,78 @@
+#!/bin/sh
+
+LPKG_DB="/var/lpkg/installed"
+LPKG_CACHE="/var/lpkg/cache"
+
+# Package repository URL (can be overridden with env var)
+LPKG_REPO="${LPKG_REPO:-http://10.0.2.2:8080}"
+
+mkdir -p "$LPKG_DB" "$LPKG_CACHE"
+
+usage() {
+  echo "lpkg - Lorez Package Manager v0.1"
+  echo ""
+  echo "  lpkg install <package>   Install a package"
+  echo "  lpkg remove  <package>   Remove a package"
+  echo "  lpkg list                List installed packages"
+  echo "  lpkg update              Update package list"
+  echo ""
+  echo "Environment:"
+  echo "  LPKG_REPO    Package repository URL (default: http://10.0.2.2:8080)"
+}
+
+cmd_install() {
+  PKG=$1
+  [ -z "$PKG" ] && echo "Usage: lpkg install <package>" && exit 1
+  [ -f "$LPKG_DB/$PKG" ] && echo "==> $PKG already installed" && exit 0
+
+  echo "==> Installing $PKG..."
+
+  # Try multiple sources
+  if [ -f "/repo/packages/$PKG.tar.gz" ]; then
+    # Local repository
+    cp "/repo/packages/$PKG.tar.gz" "$LPKG_CACHE/$PKG.tar.gz" || \
+      { echo "==> ERROR: Failed to copy $PKG"; exit 1; }
+  else
+    # Remote repository
+    wget -q -O "$LPKG_CACHE/$PKG.tar.gz" \
+      "$LPKG_REPO/packages/$PKG.tar.gz" || \
+      { echo "==> ERROR: Package $PKG not found at $LPKG_REPO"; exit 1; }
+  fi
+
+  # Extract package
+  tar -xzf "$LPKG_CACHE/$PKG.tar.gz" -C / || \
+    { echo "==> ERROR: Failed to extract $PKG"; exit 1; }
+
+  echo "$PKG" > "$LPKG_DB/$PKG"
+  echo "==> $PKG installed successfully!"
+}
+
+cmd_remove() {
+  PKG=$1
+  [ -z "$PKG" ] && echo "Usage: lpkg remove <package>" && exit 1
+  [ ! -f "$LPKG_DB/$PKG" ] && echo "==> $PKG not installed" && exit 1
+
+  # Note: This only removes the tracking file, not the actual files
+  # A proper implementation would need a manifest of installed files
+  rm -f "$LPKG_DB/$PKG" "$LPKG_CACHE/$PKG.tar.gz"
+  echo "==> $PKG removed (tracking only)"
+}
+
+cmd_list() {
+  echo "Installed packages:"
+  ls "$LPKG_DB" 2>/dev/null | sed 's/^/  /' || echo "  (none)"
+}
+
+cmd_update() {
+  echo "==> Updating package list from $LPKG_REPO..."
+  # Placeholder for future implementation
+  echo "==> Done (placeholder)"
+}
+
+case "$1" in
+  install) cmd_install "$2" ;;
+  remove)  cmd_remove "$2" ;;
+  list)    cmd_list ;;
+  update)  cmd_update ;;
+  *)       usage ;;
+esac

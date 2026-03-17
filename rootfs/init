@@ -1,0 +1,37 @@
+#!/bin/sh
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev 2>/dev/null || mdev -s
+mount -t tmpfs tmpfs /tmp
+mkdir -p /dev/pts
+mount -t devpts devpts /dev/pts
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+hostname lorez-os
+
+# gcc symlinks
+mkdir -p /libexec/gcc/x86_64-linux-gnu/13
+ln -sf /lib/gcc/x86_64-linux-gnu/13/cc1 /libexec/gcc/x86_64-linux-gnu/13/cc1 2>/dev/null
+ln -sf /lib/gcc/x86_64-linux-gnu/13/cc1plus /libexec/gcc/x86_64-linux-gnu/13/cc1plus 2>/dev/null
+ln -sf /lib/gcc/x86_64-linux-gnu/13/collect2 /libexec/gcc/x86_64-linux-gnu/13/collect2 2>/dev/null
+ln -sf /lib/gcc/x86_64-linux-gnu/13/lto1 /libexec/gcc/x86_64-linux-gnu/13/lto1 2>/dev/null
+
+ip link set lo up
+ip link set eth0 up
+ip addr add 10.0.2.15/24 dev eth0
+ip route add default via 10.0.2.2
+
+echo ""
+echo "  ██╗      ██████╗ ███████╗"
+echo "  ██║     ██╔═══██╗██╔════╝"
+echo "  ██║     ██║   ██║███████╗"
+echo "  ██║     ██║   ██║╚════██║"
+echo "  ███████╗╚██████╔╝███████║"
+echo "  ╚══════╝ ╚═════╝ ╚══════╝"
+echo "  Lorez OS v0.1 - HPC Edition"
+echo ""
+
+# Start shell on console
+exec /bin/sh
