@@ -11,3 +11,8 @@ This project demonstrates practical skills in:
 - Debugging real-world issues
 - Working with Linux internals
 - Leveraging AI as a development tool
+
+
+
+## lpkg install [For install] 
+## ex lpkg install sudo wget curl 
